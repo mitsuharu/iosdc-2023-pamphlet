@@ -1,0 +1,12 @@
+{
+  "name": "iosdc-2023-pamphlet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "pdf": "yarn vivliostyle build src/index.md"
+  },
+  "dependencies": {
+    "@vivliostyle/cli": "^7.4.0"
+  }
+}
