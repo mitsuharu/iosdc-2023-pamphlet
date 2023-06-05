@@ -8,5 +8,9 @@
   },
   "dependencies": {
     "@vivliostyle/cli": "^7.4.0"
+  },
+  "devDependencies": {
+    "@vivliostyle/theme-techbook": "^0.4.1",
+    "sass": "^1.62.1"
   }
 }
