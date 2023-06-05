@@ -3,7 +3,7 @@ module.exports = {
     author: '江本光晴 <mthr1982@gmail.com>',
     language: 'ja',
     // theme: '@vivliostyle/theme-techbook',
-    // theme: './theme/my-theme',
+    theme: 'theme/my-theme-techbook',
     entry: [
       'index.md',
     ],
