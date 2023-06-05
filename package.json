@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "pdf": "yarn vivliostyle build"
+    "pdf": "yarn vivliostyle build",
+    "build-theme": "sass theme/scss:theme"
   },
   "dependencies": {
     "@vivliostyle/cli": "^7.4.0"
