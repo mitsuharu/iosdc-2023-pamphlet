@@ -2,7 +2,8 @@ module.exports = {
     title: 'mybook',
     author: '江本光晴 <mthr1982@gmail.com>',
     language: 'ja',
-    theme: '@vivliostyle/theme-techbook',
+    // theme: '@vivliostyle/theme-techbook',
+    // theme: './theme/my-theme',
     entry: [
       'index.md',
     ],
