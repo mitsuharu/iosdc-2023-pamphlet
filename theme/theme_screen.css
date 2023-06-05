@@ -1,7 +1,7 @@
 @charset "UTF-8";
 /*
- * For PDF publications or Vivliostyle Viewer:
- * load this style in PDF publicatoins (format: pdf)
+ * For browser viewing:
+ * load this style in Web publications (format: webpub)
  */
 /* common styles */
 /*
@@ -446,7 +446,7 @@ ol.cite-items li::before {
 }
 @page {
   size: 182mm 257mm;
-  margin-top: 25mm;
+  margin-top: 125mm;
   margin-bottom: 33mm;
   @top-left-corner {
     content: "";
@@ -556,6 +556,22 @@ nav[role=doc-toc] li a::after {
 }
 
 /* and more... 🖋 */
+/* for wide screen */
+body {
+  max-width: 800px;
+  margin: 2rem auto 2rem;
+}
+
+/* highlight footnote */
+.footnote {
+  vertical-align: super;
+  background-color: aliceblue;
+  color: gray;
+}
+.footnote a {
+  word-break: break-all;
+}
+
 /* and more... 🖋 */
 
-/*# sourceMappingURL=theme_print.css.map */
+/*# sourceMappingURL=theme_screen.css.map */

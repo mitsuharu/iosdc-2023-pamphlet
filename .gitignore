@@ -200,4 +200,4 @@ dist
 
 output/*
 .vivliostyle
-theme/*/*.map
+*.css.map

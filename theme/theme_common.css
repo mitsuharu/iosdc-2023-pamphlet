@@ -1,10 +1,5 @@
 @charset "UTF-8";
 /*
- * For PDF publications or Vivliostyle Viewer:
- * load this style in PDF publicatoins (format: pdf)
- */
-/* common styles */
-/*
  * For all media (print, screen)
  */
 /* you can import partial SCSS files */
@@ -446,7 +441,7 @@ ol.cite-items li::before {
 }
 @page {
   size: 182mm 257mm;
-  margin-top: 25mm;
+  margin-top: 125mm;
   margin-bottom: 33mm;
   @top-left-corner {
     content: "";
@@ -556,6 +551,5 @@ nav[role=doc-toc] li a::after {
 }
 
 /* and more... 🖋 */
-/* and more... 🖋 */
 
-/*# sourceMappingURL=theme_print.css.map */
+/*# sourceMappingURL=theme_common.css.map */
