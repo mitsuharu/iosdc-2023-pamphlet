@@ -440,19 +440,19 @@ ol.cite-items li::before {
   }
 }
 @page {
-  size: 182mm 257mm;
+  size: 210mm 297mm;
   margin-top: 25mm;
   margin-bottom: 33mm;
   @top-left-corner {
     content: "";
     margin-bottom: 4mm;
-    margin-top: -3mm;
-    margin-left: -3mm;
+    margin-top: -5mm;
+    margin-left: -5mm;
   }
   @top-center {
     content: "";
     margin-bottom: 4mm;
-    margin-top: -3mm;
+    margin-top: -5mm;
     margin-left: -1mm;
     margin-right: -1mm;
     padding-left: 1mm;
@@ -461,22 +461,22 @@ ol.cite-items li::before {
   @top-right-corner {
     content: "";
     margin-bottom: 4mm;
-    margin-top: -3mm;
-    margin-right: -3mm;
+    margin-top: -5mm;
+    margin-right: -5mm;
   }
   @bottom-left-corner {
     content: "";
     margin-top: -8mm;
-    margin-bottom: -3mm;
-    margin-left: -3mm;
+    margin-bottom: -5mm;
+    margin-left: -5mm;
     background-color: #ffffff;
     z-index: 1000;
   }
   @bottom-right-corner {
     content: "";
     margin-top: -8mm;
-    margin-bottom: -3mm;
-    margin-right: -3mm;
+    margin-bottom: -5mm;
+    margin-right: -5mm;
     background-color: #ffffff;
     z-index: 1000;
   }
@@ -494,7 +494,7 @@ ol.cite-items li::before {
   @bottom-left {
     content: counter(page);
     margin-top: 15mm;
-    margin-bottom: -3mm;
+    margin-bottom: -5mm;
     padding: 0 2mm 15mm 2mm;
   }
 }
@@ -511,7 +511,7 @@ ol.cite-items li::before {
   @bottom-right {
     content: counter(page);
     margin-top: 15mm;
-    margin-bottom: -3mm;
+    margin-bottom: -5mm;
     padding: 0 2mm 15mm 2mm;
   }
 }
