@@ -26,15 +26,17 @@ $color_page_text: #34495e;
 $font-family: 'Neue Frutiger World', 'Verdana', 'Yakumono', 'body',
   'Hiragino Sans', sans-serif;
 
-$master-font-size-for-print: 75%;
+// 文字サイズ
+$master-font-size-for-print: 14px; // 本文の文字サイズ
+$master-font-size-for-code: 12px; // コードの文字サイズ
 
-// B5
-$page-width: 182mm;
-$page-height: 257mm;
-$page-bleed: 3mm;
+// A4
+$page-width: 210mm;
+$page-height: 297mm;
+$page-bleed: 5mm;
 
 // Page
-$page-margin-top: 25mm;
-$page-margin-bottom: 39mm;
-$page-margin-outer: 18mm;
-$page-margin-inner: 35mm;
+$page-margin-top: 25mm; // 天 (iOSDC 5mm)
+$page-margin-bottom: 27mm; // 地 (iOSDC 17mm)
+$page-margin-outer: 25mm; // 小口（本の綴じていないほうのマージン）(iOSDC 5mm)
+$page-margin-inner: 35mm; // のど（本の綴じているほうのマージン）(iOSDC 20mm)
