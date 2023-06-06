@@ -442,7 +442,7 @@ ol.cite-items li::before {
 @page {
   size: 210mm 297mm;
   margin-top: 25mm;
-  margin-bottom: 33mm;
+  margin-bottom: 21mm;
   @top-left-corner {
     content: "";
     margin-bottom: 4mm;
@@ -483,8 +483,8 @@ ol.cite-items li::before {
 }
 @page :left {
   font-family: "Neue Frutiger World", "Verdana", "Yakumono", "body", "Hiragino Sans", sans-serif;
-  margin-left: 18mm;
-  margin-right: 35mm;
+  margin-left: 25mm;
+  margin-right: 30mm;
   @top-center {
     content: env(pub-title);
     font-size: 75%;
@@ -500,8 +500,8 @@ ol.cite-items li::before {
 }
 @page :right {
   font-family: "Neue Frutiger World", "Verdana", "Yakumono", "body", "Hiragino Sans", sans-serif;
-  margin-left: 35mm;
-  margin-right: 18mm;
+  margin-left: 30mm;
+  margin-right: 25mm;
   @top-center {
     content: env(doc-title);
     font-size: 75%;
