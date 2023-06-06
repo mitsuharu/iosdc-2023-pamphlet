@@ -64,3 +64,13 @@ VS Code を利用している場合は、プラグイン [vscode\-textlint](http
 textlint を無効にしたい文章をここに書く
 <!-- textlint-enable -->
 ```
+
+
+## テーマ変更
+
+- `./theme/my-theme-techbook/scss` 内の `.scss` ファイルを更新する。
+- 変更したら、yarn build-theme でビルドする
+
+### 参照
+
+- [Vivliostyleの公式テーマをカスタマイズして、ゆめみ大技林 '22のテーマを作った](https://zenn.dev/macneko/articles/06aec138a357b9)
