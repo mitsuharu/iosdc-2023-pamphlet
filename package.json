@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "pdf": "yarn vivliostyle build",
+    "open": "open ./output/output.pdf",
     "build-theme": "sass theme/my-theme-techbook/scss:theme/my-theme-techbook",
     "lint": "textlint ./manuscripts/"
   },
