@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "pdf": "yarn vivliostyle build",
-    "build-theme": "sass theme/my-theme-techbook/scss:theme/my-theme-techbook"
+    "build-theme": "sass theme/my-theme-techbook/scss:theme/my-theme-techbook",
+    "lint": "textlint ./manuscripts/"
   },
   "dependencies": {
     "@vivliostyle/cli": "^7.4.0"
