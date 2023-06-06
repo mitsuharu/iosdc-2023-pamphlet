@@ -19,7 +19,7 @@ pre[class*=language-] {
   font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
   font-size: 1em;
   text-align: left;
-  white-space: pre;
+  white-space: pre-wrap;
   word-spacing: normal;
   word-break: normal;
   word-wrap: normal;
@@ -419,7 +419,10 @@ ol.cite-items li::before {
     widows: 3;
     orphans: 3;
     hyphens: auto;
-    font-size: 75%;
+    font-size: 14px;
+  }
+  .token {
+    font-size: 12px;
   }
   h1,
   h2,
@@ -483,37 +486,13 @@ ol.cite-items li::before {
 }
 @page :left {
   font-family: "Neue Frutiger World", "Verdana", "Yakumono", "body", "Hiragino Sans", sans-serif;
-  margin-left: 25mm;
-  margin-right: 30mm;
-  @top-center {
-    content: env(pub-title);
-    font-size: 75%;
-    text-align: left;
-    padding: 12mm 2mm 0 2mm;
-  }
-  @bottom-left {
-    content: counter(page);
-    margin-top: 15mm;
-    margin-bottom: -5mm;
-    padding: 0 2mm 15mm 2mm;
-  }
+  margin-left: 35mm;
+  margin-right: 25mm;
 }
 @page :right {
   font-family: "Neue Frutiger World", "Verdana", "Yakumono", "body", "Hiragino Sans", sans-serif;
-  margin-left: 30mm;
-  margin-right: 25mm;
-  @top-center {
-    content: env(doc-title);
-    font-size: 75%;
-    text-align: right;
-    padding: 12mm 2mm 0 2mm;
-  }
-  @bottom-right {
-    content: counter(page);
-    margin-top: 15mm;
-    margin-bottom: -5mm;
-    padding: 0 2mm 15mm 2mm;
-  }
+  margin-left: 25mm;
+  margin-right: 35mm;
 }
 nav#toc,
 nav[role=doc-toc] {
