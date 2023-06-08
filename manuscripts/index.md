@@ -8,15 +8,17 @@ Redux Saga を Swift でも使いたい
 株式会社ゆめみ
 </div>
 
-皆様が好きなアーキテクチャは何でしょうか。
-私が好きなアーキテクチャは Redux Saga です（正確には Redux を redux-saga ライブラリで拡張したものです）。
-単方向データフローの Redux に加えて、ビジネスロジックなどを Saga にまとめることで、
-アプリの副作用（何かしら変化が起こるピュアではない処理）を簡単に責務分け・制御できます。
-Web（React）や React Native などの開発でよく使われてきたアーキテクチャで、
-同じ宣言的 UI の SwiftUI と相性がよいはずです。
-しかし、残念なことに Swift で Redux Saga を実現したライブラリはありません。
-ないならば、作りましょう。本記事は、Redux Saga を Swift で実装する方法を紹介します。
+あなたのお気に入りのアーキテクチャは何ですか。私のお気に入りは Redux Saga です。
+これは Redux を redux-saga ライブラリで拡張したものです。
+単方向データフローの Redux に、ビジネスロジックなどをまとめた Saga を加えることで、
+アプリの副作用を効率的に管理し、責務を明確に分けることができます。
 
+Redux Saga は Web（React）や React Native などの開発でよく用いられるので、
+同じ宣言的 UI の SwiftUI との相性が期待できます。
+しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
+それならば、自身で作成するしかありません。
+本記事は、Swift で Redux Saga をどのように実装するかを解説し、
+実際に作成したライブラリを組み込んだ例を紹介します。
 
 <!-- 
 https://github.com/redux-saga/redux-saga/blob/main/README_ja.md
@@ -45,4 +47,4 @@ Redux には ReSwift を利用します。
 
 あああ。
 
-Redux Saga の元々の開発言語である JavaScript と Swift の性格性が異なるので、完全再現は難しいです。
+Redux Saga の元々の開発言語である JavaScript と Swift の設計・性質が異なるので、完全再現は難しいです。
