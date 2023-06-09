@@ -31,7 +31,7 @@ ES6 の Generator 関数を使うことで読み書きしやすく、テスト�
 これまで redux-thunk を使ってデータ通信を行っているかもしれませんが、 redux-thunk とは異なりコールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、アクションをピュアに保ちます。
 -->
 
-本記事では説明のため、Swift だけでなく JavaScript（TypeScript）のコードも提示します。
+本記事では、Swift だけでなく JavaScript（TypeScript）のコードも提示します。
 また、Redux Saga の API も挙げますが詳細説明は省略します。
 雰囲気を感じてもらう程度で問題ないです。
 
@@ -57,7 +57,7 @@ Redux Saga は、副作用（データフェッチングやブラウザキャッ
 すると、Redux Saga 側でその Action に紐付いている Saga が実行されます。
 副作用は Saga にまとめておいて、
 View は対応する Action を発行するだけで、対応する副作用が実行されます。
-Redux Saga に従っていれば、自ずと責務分けが実現されます。
+Redux Saga にしたがっていれば、自ずと責務分けが実現されます。
 私が Redux Saga が好きな点の１つです。
 
 ```typescript: Redux Saga の例
@@ -68,8 +68,8 @@ const onPress = () => {
 
 // Redux Saga の初期設定時に Action に対応する処理を設定しておく
 function* rootSaga() {
-	// Action "requestUser" が発行されたら、fetchUserSaga を実行する
-	yield takeEvery(requestUser, fetchUserSaga)
+  // Action "requestUser" が発行されたら、fetchUserSaga を実行する
+  yield takeEvery(requestUser, fetchUserSaga)
 }
 
 // ユーザー情報の取得を行う副作用
@@ -78,7 +78,7 @@ function* fetchUserSaga(action) {
     const user = yield call(Api.fetchUser, action.payload.userId)
     yield put(storeUser(user))
   } catch (e) {
-  	 // エラー処理（略）
+    // エラー処理（略）
   }
 }
 ```
@@ -92,22 +92,25 @@ function* fetchUserSaga(action) {
 
 ## Swift で実装方針
 
-Redux 本体の実装には既存のライブラリである ReSwift [^ReSwift] を利用します。
 Redux Saga の機能は多いため、一部の機能から実装を試みます。
 具体的には、middleware, put, call, fork, take, takeEvery, takeLeading, takeLatest の各機能を再現します。
 これらの機能は、Redux Saga の中心的な機能であり、これらを実装することで基本的なの動作を Swift で再現できます。
+
+<!-- 紙面は middleware, takeEvery ぐらい？ -->
+
+Redux 本体の実装には既存のライブラリである ReSwift [^ReSwift] を利用します。
+元々の実装では Saga にジェネレーター関数が利用されていますが Swift Concurrency を利用します。
+また Combine を用いて Action の発行監視を制御します。
+これらから、Redux Saga の機能を Swift で実装します
+なお、Redux 本体への接点は極力少なくなるようにします。
+これは Saga としてビジネスロジックを切り離して管理できるので、
+たとえば将来的に他の優れたアーキテクチャが登場した場合に、
+アーキテクチャの切り替えを容易にするためです。
 
 <!-- textlint-disable -->
 [^ReSwift]: ReSwift 6.1.1 を利用します, https://github.com/ReSwift/ReSwift
 <!-- textlint-enable -->
 
-また、Redux 本体への接点は極力少なくなるようにします。
-これは Saga としてビジネスロジックを切り離して管理できるので、
-たとえば将来的に他の優れたアーキテクチャが登場した場合に、
-アーキテクチャの切り替えを容易にするためです。
-
-最後に、Swift での非同期処理には combine を利用します。
-これらの方針の元で、Redux Saga の機能を Swift で実現します。
 
 ## 実装例
 
