@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "Hashable",
     "hogehoge",
     "iosdc",
     "mitsuharu",
@@ -7,6 +8,7 @@
     "techbook",
     "textlint",
     "textlintignore",
+    "typealias",
     "vivliostyle"
   ]
 }
