@@ -1,11 +1,17 @@
 {
-    "cSpell.words": [
-        "hogehoge",
-        "iosdc",
-        "nodenv",
-        "techbook",
-        "textlint",
-        "textlintignore",
-        "vivliostyle"
-    ]
+  "cSpell.words": [
+    "Hashable",
+    "hasher",
+    "hogehoge",
+    "inout",
+    "iosdc",
+    "mitsuharu",
+    "nodenv",
+    "struct",
+    "techbook",
+    "textlint",
+    "textlintignore",
+    "typealias",
+    "vivliostyle"
+  ]
 }
