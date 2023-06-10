@@ -6,6 +6,8 @@ iOSDC 2023 に投稿するパンフレット記事です。
 
 ## 執筆
 
+※ Docker 未対応です
+
 ### 初期設定
 
 ```shell
@@ -69,7 +71,7 @@ textlint を無効にしたい文章をここに書く
 ## テーマ変更
 
 - `./theme/my-theme-techbook/scss` 内の `.scss` ファイルを更新する。
-- 変更したら、yarn build-theme でビルドする
+- 変更したら `yarn build-theme` でビルドする
 
 ### 参照
 
