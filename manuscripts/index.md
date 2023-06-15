@@ -1,4 +1,4 @@
-Redux Saga を Swift でも使いたい
+Redux の副作用を直感的に管理する Redux Saga を Swift でも使いたい
 ==
 
 <div style="text-align: right;">
@@ -11,9 +11,9 @@ Redux Saga を Swift でも使いたい
 あなたのお気に入りのアーキテクチャは何ですか。私のお気に入りは Redux Saga です。
 これは Redux [^redux] を redux-saga [^redux-saga] ライブラリで拡張したものです。
 単方向データフローの Redux に、ビジネスロジックなどをまとめた Saga を加えることで、
-アプリの副作用を効率的に管理し、責務を明確に分けることができます。
+アプリの副作用を直感的に管理し、責務を明確に分けることができます。
 
-Redux Saga は Web（React）や React Native などの開発でよく用いられるので、
+Redux Saga は JavaScript で作成され Web（React）や React Native などの開発でよく用いられます。
 同じ宣言的 UI の SwiftUI との相性が期待できます。
 しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
 それならば、自身で作成するしかありません。
