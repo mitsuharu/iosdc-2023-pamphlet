@@ -9,25 +9,18 @@ Redux の副作用を直感的に管理する Redux Saga を Swift でも使い�
 </div>
 
 あなたのお気に入りのアーキテクチャは何ですか。私のお気に入りは Redux Saga です。
-これは Redux [^redux] を redux-saga [^redux-saga] ライブラリで拡張したものです。
-単方向データフローの Redux に、ビジネスロジックなどをまとめた Saga を加えることで、
-アプリの副作用を直感的に管理し、責務を明確に分けることができます。
+Redux Saga [^redux-saga] は単方向データフローの Redux [^redux] を拡張し、
+非同期処理や副作用を直感的に管理できるようにしたアーキテクチャです。
+ビジネスロジックなどを Saga にまとめることで、責務を明確に分けることができます。
 
 Redux Saga は JavaScript で作成され Web（React）や React Native などの開発でよく用いられます。
 同じ宣言的 UI の SwiftUI との相性が期待できます。
 しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
+
 それならば、自身で作成するしかありません。
-本記事は、Swift で Redux Saga をどのように実装するかを解説し、
-実際に作成したライブラリを組み込んだ例を紹介します。
-
-<!--
-Redux Saga は単方向データフローの Redux を拡張し、非同期処理や副作用を直感的に管理できるようにしたアーキテクチャです。
-JavaScript で実装され、Web（React）や React Native でよく利用されています。
-同じ宣言的 UI の SwiftUI との相性が期待できます。
-しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
-
-ないのであれば、自身で作成するしかありません。JavaScript と Swift の言語設計と性質の違いを考慮しつつ、Swift の言語特性を活かす形で、Redux Saga の主要な機能をどのように実装するかを解説します。Redux Saga の特性や利点を紹介して、iOS アプリ開発における Redux Saga の可能性を探求します。
--->
+JavaScript と Swift の言語設計と性質の違いを考慮しつつ、Swift の言語特性を活かす形で、
+Redux Saga の主要な機能をどのように実装するかを解説します。
+Redux Saga の特性や利点を紹介して、iOS アプリ開発における Redux Saga の可能性を探求します。
 
 <!-- textlint-disable -->
 [^redux]: https://github.com/reduxjs/redux
@@ -36,7 +29,7 @@ JavaScript で実装され、Web（React）や React Native でよく利用さ�
 
 本記事では、Swift だけでなく JavaScript（TypeScript）のコードも提示します。
 また、Redux Saga の API も挙げますが、詳細説明は省略します。
-雰囲気を感じてもらう程度で大丈夫です。
+雰囲気を感じてもらう程度で問題ありません。
 
 ## Redux Saga とは
 
@@ -55,21 +48,10 @@ State 全体にアクセスでき、Action をディスパッチできます。
 同様なライブラリの Redux Thunk と比較すると、
 コールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、Action を純粋に保つことができます。
 
-<!-- 
-https://github.com/redux-saga/redux-saga/blob/main/README_ja.md
-redux-saga は React/Redux アプリにおける副作用（データ通信などの非同期処理、ブラウザキャッシュへのアクセスのようなピュアではない処理）をより簡単で優れたものにするためのライブラリです。
-
-Saga はアプリの中で副作用を個別に実行する独立したスレッドのような動作イメージです。 redux-saga は Redux ミドルウェアとして実装されているため、スレッドはメインアプリからのアクションに応じて起動、一時停止、中断が可能で、Redux アプリのステート全体にアクセスでき、Redux アクションをディスパッチすることもできます。
-
-ES6 の Generator 関数を使うことで読み書きしやすく、テストも容易な非同期フローを実現しています（もし馴染みがないようであればリンク集を参考にしてみてください）。それにより非同期フローが普通の同期的な JavaScript のコードのように見えます（async/await と似ていますが Generator 関数にしかないすごい機能があるんです）。
-
-これまで redux-thunk を使ってデータ通信を行っているかもしれませんが、 redux-thunk とは異なりコールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、アクションをピュアに保ちます。
--->
-
-![Redux Saga](./image/redux-saga.png "Redux Saga")
+![Redux Saga のデータフロー](./image/redux-saga.png "Redux Saga のデータフロー")
 
 <!-- <div style="text-align: center;">
-<img src="./image/redux-saga.png" alt="Redux Saga" title="Redux Saga" width="400">
+<img src="./image/redux-saga.png" alt="Redux Saga のデータフロー" title="Redux Saga のデータフロー" width="400">
 </div> -->
 
 たとえば、あるボタンをタップして、ユーザー情報を取得する例を考えましょう。
@@ -78,11 +60,12 @@ ES6 の Generator 関数を使うことで読み書きしやすく、テスト�
 ```typescript
 // View などでユーザー情報を取得する Action を発行（dispatch）する
 const onPress = () => {
-   dispatch(requestUser({userId: xxx}))
+   dispatch(requestUser({userId: '1234'}))
 }
 ```
 
-Redux Saga 側では、その Action を受け取り、紐付けられた Saga が実行されます。
+事前に Redux Saga 側で takeEvery() で Action と Saga を紐付けをしておきます。
+その Action が発行されたので、紐付けられた Saga が実行されます。
 
 ```typescript
 // Redux Saga の初期設定時に Action に対応する処理を設定しておく
@@ -94,8 +77,7 @@ function* rootSaga() {
 // ユーザー情報の取得を行う副作用
 function* fetchUserSaga(action) {
   try {
-    const user = yield call(Api.fetchUser, action.payload.userId)
-    yield put(storeUser(user))
+    // たとえば、API からユーザー情報を取得する
   } catch (e) {
     // エラー処理（略）
   }
@@ -109,21 +91,22 @@ Redux Saga にしたがっていれば、自ずと責務分けが実現されま
 ## Swift での実装アプローチ
 
 Redux Saga の機能は多いため、まずは完全再現は目指さず、一部の機能から実装します。
-そのため、今動いていても、他の機能を実装するときに不具合で修正・作り直しする場合もあります。
+そのため、今動作していても、他の機能を実装するときに不具合で修正する場合もあります。
 また本記事では、紙面の都合上、middleware と takeEvery の実装を提示します。
-middleware は既存の Redux から Saga へ Action を伝える根底部分であり、
+middleware は既存の Redux から Redux Saga へ Action を伝える根底部分であり、
 takeEvery はよく利用される機能の１つです。
 
-Redux 本体の実装には既存のライブラリである ReSwift [^ReSwift] を利用します。
-JavaScript の実装では Saga にジェネレーター関数が利用されていますが、
+Redux 本体の実装に既存のライブラリである ReSwift [^ReSwift] を利用します。
+本来の JavaScript の実装ではジェネレーター関数が利用されていますが、
 Swift では Swift Concurrency を利用します。
 また Combine を用いて Action の発行監視を制御します。
-なお、方針として Redux 本体への接点は極力少なくなるようにします。
+
+なお、方針として Redux 本体への接点は極力少なく、独立したライブラリになるように心がけます。
 これは Saga としてビジネスロジックを切り離して管理できるので、
 たとえば将来的に他に優れたアーキテクチャが登場した場合などにおいて、
 アーキテクチャの入替を容易にするためです。
 
-今回は Xcode 14.1 を利用して、開発しています。
+今回は Xcode 14.3.1 を利用して、開発しています。
 
 <!-- textlint-disable -->
 [^ReSwift]: https://github.com/ReSwift/ReSwift バージョン 6.1.1 を利用しました
@@ -132,36 +115,41 @@ Swift では Swift Concurrency を利用します。
 ## Swift で実装する
 
 まずは Redux Saga の実装において Action の同一判定が必要になります。
-ReSwift が定義する Action は空の Protocol で定義されるため、これを拡張します。
+ReSwift が定義する Action は空の Protocol なので、これを拡張します。
+一般に enum や struct で利用されることが多いですが、
+それらでは煩雑になってしまう、継承を利用したいため class にしました。
 
 ```swift
-// Saga向けのAction（比較が必要なため Hashable を継承する）
-protocol SagaAction: Action, Hashable {}
+// Saga で利用する Action
+class SagaAction: Action {}
+```
 
-extension SagaAction {
-    // プロトコルの時点では比較(==)が実装できないための回避策
-    func isEqualTo(_ arg: any SagaAction) -> Bool {
-        return self.hashValue == arg.hashValue
+先ほど挙げた例と同様に、ユーザー情報を取得する場合を考えます。
+
+```swift
+// Action をグループ管理したいので UserAction という中間のクラスを作る
+class UserAction: SagaAction {}
+
+// ユーザー情報を取得する Action
+class RequestUser: UserAction {
+    let userID: String
+    init(userID: String) {
+        self.userID = userID
     }
-}
-
-// Action を enum で定義する
-enum CounterAction: SagaAction {
-    case increase
-    case decrease
 }
 ```
 
-### 中核となる制御クラス SagaProvider を実装する
+### 中核となる制御クラスを実装する
 
-Action の管理や副作用の実行を制御するためのクラス SagaProvider を作成します。
+Action の管理や副作用の実行を制御するためのクラスを作成します。
+クラス名は SagaMonitor にしました（実際に元の実装で利用されている名前です）。
 このクラスが自作するライブラリの中核になります。
 まずは Action の発行および購読の処理を実装します。
 
 ```swift
-final class SagaProvider {    
-    public static let shared = SagaProvider()    
-    private let subject = PassthroughSubject<any SagaAction, Error>()
+final class SagaMonitor {    
+    public static let shared = SagaMonitor()    
+    private let subject = PassthroughSubject<SagaAction, Error>()
     private var cancellable: AnyCancellable? = nil
 
     init() {
@@ -169,7 +157,7 @@ final class SagaProvider {
     }
 
     // action を発行する
-    func send(_ action: any SagaAction){
+    func send(_ action: SagaAction){
         subject.send(action)
     }
     
@@ -186,7 +174,7 @@ final class SagaProvider {
 
 ### middleware を実装する
 
-SagaProvider を用いて Saga 向けの middleware を実装します。
+SagaMonitor を用いて Saga 向けの middleware を実装します。
 
 ```swift
 // Saga 向けの middleware を作成する
@@ -195,7 +183,7 @@ func createSagaMiddleware<State>() -> Middleware<State> {
         return { next in
             return { action in
                 if let action = action as? (any SagaAction) {
-                    SagaProvider.shared.send(action)
+                    SagaMonitor.shared.send(action)
                 }
                 return next(action)
             }
@@ -226,11 +214,11 @@ func makeAppStore() -> Store<AppState> {
 
 次に takeEvery を作成します。
 これは特定の Action と Saga を紐づけて、その Action が発行されるたびに指定した Saga を実行します。
-まずは、それらを紐付ける構造体 SagaEffect を作成します。
+まずは、それらを紐付ける構造体 SagaStore を作成します。
 
 ```swift
 // Sagaで実行する関数の型
-typealias Saga<T> = (_ action: (any SagaAction)?) async -> T
+typealias Saga<T> = (SagaAction) async -> T
 
 // サポートする実行パターン
 enum SagaPattern {
@@ -238,7 +226,7 @@ enum SagaPattern {
 }
 
 // Action と Saga を紐づける構造体
-struct SagaEffect<T>: Hashable {
+struct SagaStore<T>: Hashable {
     
     let identifier = UUID().uuidString
         
@@ -246,35 +234,37 @@ struct SagaEffect<T>: Hashable {
         return hasher.combine(identifier)
     }
     
-    static func == (l: SagaEffect<T>, r: SagaEffect<T>) -> Bool {
-        return l.identifier == r.identifier
+    static func == (lhs: SagaStore<T>, rhs: SagaStore<T>) -> Bool {
+        return lhs.identifier == rhs.identifier
     }
     
     let pattern: SagaPattern
-    let action: (any SagaAction)?
-    let saga: Saga<T>?
+    let type: SagaAction.Type
+    let saga: Saga<T>
 }
 ```
 
-制御クラス SagaProvider にこの紐付けの構造体 SagaEffect を追加します。
+制御クラス SagaMonitor にこの紐付けの構造体 SagaStore を追加します。
 
 ```swift
-final class SagaProvider {
+final class SagaMonitor {
     // ...
     
-    private var effects = Set<SagaEffect<Any>>()
+    private var stores = Set<SagaStore<Any>>()
 
-    func addEffect(_ effect:SagaEffect<Any>){
-        effects.insert(effect)
+    func addStore(_ store:SagaStore<Any>){
+        stores.insert(store)
     }
 }
 ```
 
 発行された Action を受け取り、実行する処理を追加します。
-構造体 SagaEffect の中に一致する Action があれば、それぞれのパターンで Saga を実行させます。
+構造体 SagaMonitor の中に一致する Action があれば、それぞれのパターンで Saga を実行させます。
+ここの Action の比較で重要なのは、Action 自体（インスタンス）ではなく、
+Action の種類（型）を比較するというところです。
 
 ```swift
-final class SagaProvider {
+final class SagaMonitor {
     
     // ...
         
@@ -284,21 +274,19 @@ final class SagaProvider {
             // エラー処理（略）
         } receiveValue: { [weak self] action in
             // 発行された action に対する処理を行う
-            self?.effects.filter { $0.action?.isEqualTo(action) == true }.forEach({ effect in
-                self?.execute(effect)
+            self?.stores.filter { $0.type == type(of: action) }.forEach({ effect in
+                 self?.execute(effect, action: action)
             })
         }
     }
     
     // 副作用をそれぞれのパターンで実行する
-    private func execute(_ effect: SagaEffect<Any>) {
-        switch effect.pattern {
+    private func execute(_ store: SagaStore<Any>, action: SagaAction) {
+        switch store.pattern {
         case .takeEvery:
-            if let saga = effect.saga{
-                Task.detached{
-                    let _ = await saga(effect.action)
-                }
-            }            
+            Task.detached{
+                let _ = await store.saga(action)
+            }           
         default:
             break
         }
@@ -306,12 +294,13 @@ final class SagaProvider {
 }
 ```
 
-SagaProvider 側の準備が完了したので、最後に実際に利用する takeEvery を実装します。
-構造体 SagaEffect を渡して、Action が発行されるのを待ちます。
+SagaMonitor 側の準備が完了したので、最後に実際に利用する takeEvery を実装します。
+構造体 SagaStore を渡して、Action が発行されるのを待ちます。
 
 ```swift
-public func takeEvery<T>( _ action: any SagaAction, saga: @escaping Saga<T>)  {
-    SagaProvider.shared.addEffect(SagaEffect(pattern: .takeEvery, action: action, saga: saga))
+func takeEvery( _ action: SagaAction.Type, saga: @escaping Saga<Any>) {
+    let store = SagaStore(pattern: .takeEvery, type: action.self, saga: saga)
+    SagaMonitor.shared.addStore(store)
 }
 ```
 
@@ -321,31 +310,31 @@ takeEvery の内部実装が完了したので、実際に使ってみましょ�
 まずは、実行させたい副作用の Saga を実装して、takeEvery 関数で Action と紐付けます。
 
 ```swift
-// 何かの処理を実行する Saga
-let increaseSaga: Saga = { (_ action: Action?) async in
-    print("call increaseSaga")
+// ユーザー情報を取得する Saga
+let requestUserSaga: Saga = { action async in
+    // API などでユーザー情報を取得する
 }
 
 // 起動時に実行される任意な関数
 func setup(){
-    // Action "increase" が発行されたら "increaseSaga" を実行する
-    takeLatest(CounterAction.increase, saga: increaseSaga)
+    takeEvery(RequestUser.self, saga: requestUserSaga)
 }
 ```
 
 これで準備が整いました。
-適当な View の関数で Action "increase" を発行する処理を書きましょう。
+適当な View の関数で Action "RequestUser" を発行する処理を書きましょう。
 
 ```swift
-final class CounterViewModel {
+final class UserViewModel {
     // 適当なボタンイベントなどで呼ぶ  
-    public func increase() {
-        appStore.dispatch(CounterAction.increase)
+    public func requestUser() {
+        appStore.dispatch(RequestUser(userID: "1234"))
     }
 }
 ```
 
-この関数が実行されると、Action "increase" が発行されて、紐付く "increaseSaga" が実行されます。
+この関数が実行されると、Action "RequestUser" が発行されて、
+紐付く Saga "requestUserSaga" が実行されます。
 View は Action を発行するだけで、実行される処理の実装には関与しません。
 仮に Saga 内で State を更新する処理があれば、
 その更新された State にしたがって、対応する View が更新されます。
