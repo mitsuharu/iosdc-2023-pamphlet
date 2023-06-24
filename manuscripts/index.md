@@ -129,7 +129,7 @@ class SagaAction: Action {}
 class UserAction: SagaAction {}
 
 // ユーザー情報を取得する Action
-class RequestUser: UserAction {
+final class RequestUser: UserAction {
     let userID: String
     init(userID: String) {
         self.userID = userID
@@ -202,7 +202,7 @@ typealias Saga<T> = (SagaAction) async -> T
 
 call は Saga とその引数を与えて実行するシンプルな関数です。
 Saga の型定義でジェネリクスを利用しましたが、ここでは開発中のため Any にしました。
-今後の修正予定です。
+今後の修正課題です。
 
 ```swift
 @discardableResult
@@ -216,7 +216,7 @@ func call(_ effect: @escaping Saga<Any>,
 
 take は特定の Action が発行されるのを待つ処理です。
 Action のインスタンスを比較するのではなく、
-発行された Action の型を見て判定します。
+発行された Action の種類（型）を見て判定します。
 まずは前述の Channel に、特定の Action を受信する仕組みを追加します。
 
 ```swift
@@ -245,7 +245,7 @@ final class Channel {
 ```
 
 追加改修した Channel を利用して take の関数を作成します。
-この `take()` を実行するたびに、Channel で監視が始まり、
+この take() を実行するたびに、Channel で監視が始まり、
 引数で指定した Action の型が検出されるまで、待つことになります。
 
 ```swift
@@ -256,14 +256,13 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 }
 ```
 
-この `take()` は Redux Saga の起点となる関数です。
+この take() は Redux Saga の起点となる関数の１つです。
 Action の種類、つまり Swift では型で判断するというところに苦労しました。
 
 ### takeEvery を実装する
 
-次に takeEvery を作成します。
-これは特定の Action と Saga を紐づけて、その Action が発行されるたびに指定した Saga を実行します。
-前述で作成した `take()` と `call()` を組み合わせて実装します。
+takeEvery は特定の Action と Saga を紐づけて、その Action が発行されるたびに指定した Saga を実行します。
+前述で作成した take と call を組み合わせて実装します。
 
 ```swift
 func takeEvery( _ actionType: SagaAction.Type,
@@ -290,6 +289,7 @@ Swift でも、慣習にそって、命名しました。
 ```swift
 // ユーザー情報を取得する Saga
 let requestUserSaga: Saga = { action async in
+    guard let action = action as? RequestUser else { return }
     // API などで action.userID のユーザー情報を取得する
 }
 ```
@@ -303,7 +303,7 @@ func setupSaga(){
 }
 ```
 
-この設定関数は前に挙げた makeAppStore() で middleware を設定した後に、呼ぶとよいです。
+これは前に挙げた makeAppStore() で middleware を設定した後に呼ぶとよいです。
 
 ```swift
 func makeAppStore() -> Store<AppState> {
@@ -316,7 +316,7 @@ func makeAppStore() -> Store<AppState> {
 }
 ```
 
-これで準備が整いました。
+準備が整いました。
 適当な View の関数で Action `RequestUser` を発行する処理を書きます。
 今回は MVVM を想定して、適当な ViewModel を用意しました。
 
@@ -331,7 +331,7 @@ final class UserViewModel {
 
 この関数が実行されると、Redux で Action `RequestUser` が発行されます。
 そして、Redux Saga へ伝達され、対応する Saga `requestUserSaga` が実行されます。
-View は Action を発行するだけで、実行される処理の責務には関与しません。
+View は Action を発行するだけで、実行される処理およびその実装の責務には関与しません。
 
 ## 自作した Redux Saga の評価
 
@@ -341,7 +341,8 @@ ViewModel がシンプルになったので、作成してよかったです。
 
 - Action を enum, struct でもできるようにしたい
 - Saga のジェネリクスを適切に対応する
-- エラー処理（do-catch, throw）やテストコードを適切に対応する
+- エラー処理（do-catch, throw）を適切に対応する
+- テストコードを適切に対応する
 
 ## Redux Saga と SwiftUI
 
@@ -352,10 +353,11 @@ Redux Saga を利用すると、Redux の利点に加えて、次のメリット
 - View と副作用が分離される
   - 各コンポーネントが単純になり、保守性と再利用性が向上する
 
-ただし、SwiftUI の性質から、React Native で利用した場合と同様な快適さは得られないとも思っています。
-たとえばナビゲーション遷移も Saga で制御することがありますが、
+ただし、SwiftUI の性質から、たとえば React Native で利用した場合と比較して、
+同等な快適さは得られないとも思っています。
+たとえばナビゲーション遷移も Redux Saga で制御することがありますが、
 SwiftUI のナビゲーションは癖があるので、再現は難しいです。
-ただ、上記で挙げたメリットもあるので、自作ライブラリの練度を上げて、
+しかし、上記で挙げたメリットもあるので、自作ライブラリの練度を上げて、
 より iOS アプリ開発に最適な形を追求したいです。
 
 ## まとめ
