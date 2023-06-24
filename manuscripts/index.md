@@ -64,7 +64,8 @@ const onPress = () => {
 }
 ```
 
-事前に Redux Saga 側で takeEvery() で Action と Saga を紐付けをしておきます。
+事前に Redux Saga 側で Action と Saga を紐付けしておきます。
+takeEvery() は特定の Action が発行されるのを待ち、発行されたら Saga を実行する関数です。
 その Action が発行されたので、紐付けられた Saga が実行されます。
 
 ```typescript
@@ -86,20 +87,19 @@ Redux Saga にしたがっていれば、自ずと責務分けが実現されま
 
 ## Swift での実装アプローチ
 
-Redux Saga の機能は多いため、まずは完全再現は目指さず、一部の機能から実装します。
-そのため、今動作していても、他の機能を実装するときに不具合で修正する場合もあります。
-また本記事では、紙面の都合上、middleware, call, take そして takeEvery の実装を提示します。
-middleware は Redux から Redux Saga へ Action を伝える根底部分であり、
-call, take, takeEvery はよく利用される機能の１つです。
+Redux Saga の実装・機能は複雑なため、完全再現は目指さず、一部の機能実装から始めます。
+本記事では、middleware, call, take そして takeEvery の実装を紹介します。
+middleware は Redux から Redux Saga へ Action を伝える根底部分で、
+call, take, takeEvery はよく利用される機能です。
 
 本来の JavaScript の実装ではジェネレーター関数が利用されていますが、
 Swift では Swift Concurrency を利用します。
-また Action の非同期な発行監視は Combine で制御します。
+また Action の非同期な発行や監視は Combine で制御します。
 なお、Redux 本体の実装に既存ライブラリの ReSwift [^ReSwift] を利用します。
 
 ここで、方針として Redux 本体への接点は極力少なく、独立したライブラリになるように心がけます。
 これは Saga としてビジネスロジックを切り離して管理できるので、
-たとえば将来的に他に優れたアーキテクチャが登場した場合などにおいて、
+たとえば将来的に優れた他のアーキテクチャが登場した場合などにおいて、
 アーキテクチャの入替を容易にするためです。
 
 今回は Xcode 14.3.1 で開発しています。
@@ -110,15 +110,15 @@ Swift では Swift Concurrency を利用します。
 
 ## Swift で実装する
 
-まずは Redux Saga の実装において Action の比較が必要です。
+まず Redux Saga の実装において Action の比較が必要になります。
 ここでの比較はインスタンス同士の比較ではなく、Action の種類、つまり型レベルでの比較です。
 ReSwift が定義する Action は空の Protocol で、
 一般に enum や struct で利用されることが多いです。
-enum では型レベルの比較が難しい、実装の過程で継承を利用したいので struct は難しいです。
-そのため、class で Action を実装します。
+enum では型レベルの比較が難しい、実装の過程で継承を利用したいので struct は難しいです
+（継承を利用するのは主に reducer の設計ですが、その詳細は省略します）。
+そのため、今回は class で Action を実装します。
 
 ```swift
-// Saga で利用する Action
 class SagaAction: Action {}
 ```
 
@@ -137,12 +137,10 @@ class RequestUser: UserAction {
 }
 ```
 
-### Action の発行監視を制御する
+### middleware を実装する
 
-Action の発行や受信を制御するためのクラスを作成します。
-クラス名は Channel にしました（実際に元の実装で利用されている名前です）。
-このクラスが自作するライブラリの中核になります。
-まずは Action の発行および購読の処理を実装します。
+Redux で発行された Action を Redux Saga に伝達させる middleware を実装します。
+まず Action を Redux Saga 向けに発行するクラス Channel を作成します。
 
 ```swift
 final class Channel {    
@@ -153,28 +151,10 @@ final class Channel {
     func put(_ action: SagaAction){
         subject.send(action)
     }
-    
-    // 特定の action を受け取る
-    func take(_ actionType: SagaAction.Type, 
-            receive: @escaping (_ action: SagaAction) -> Void){
-        // この監視は一度限りで行い、検出後は破棄する
-        var cancellable: AnyCancellable? = nil
-        cancellable = subject.filter {
-            type(of: $0) == actionType
-        }.sink { [weak self] in
-            // エラー処理
-            cancellable?.cancel()
-        } receiveValue: {
-            receive($0)
-            cancellable?.cancel()
-        }
-    }
 }
 ```
 
-### middleware を実装する
-
-Channel を用いて Saga 向けの middleware を実装します。
+この Channel を組み込んだ middleware を実装します。
 
 ```swift
 // Saga 向けの middleware を作成する
@@ -193,7 +173,7 @@ func createSagaMiddleware<State>() -> Middleware<State> {
 ```
 
 この middleware を ReSwift の Store に適用すれば、
-Redux のフローに介入し、発行された Action を SagaProvider に伝達できます。
+Redux のフローに介入して、発行された Action が Redux Saga に伝達されます。
 
 ```swift
 // ReSwift の初期設定を行う関数
@@ -210,16 +190,19 @@ func makeAppStore() -> Store<AppState> {
 }
 ```
 
-### call を実行する
+### call を実装する
 
-Saga は今後多様するので、型を定義しておきます。
+Saga は多様するので、型定義をします。
+Action を引数にした非同期関数です。
 
 ```swift
 // Sagaで実行する関数の型
 typealias Saga<T> = (SagaAction) async -> T
 ```
 
-call は単純に Saga とその引数を与えて実行する関数です。
+call は Saga とその引数を与えて実行するシンプルな関数です。
+Saga の型定義でジェネリクスを利用しましたが、ここでは開発中のため Any にしました。
+今後の修正予定です。
 
 ```swift
 @discardableResult
@@ -231,17 +214,45 @@ func call(_ effect: @escaping Saga<Any>,
 
 ### take を実装する
 
-take は特定の Action が発行されるのを待ちます。
-Channel の take() を　withCheckedContinuation　で async/await に変換しました。
+take は特定の Action が発行されるのを待つ処理です。
+Action のインスタンスを比較するのではなく、
+発行された Action の型を見て判定します。
+まずは前述の Channel に、特定の Action を受信する仕組みを追加します。
+
+```swift
+final class Channel {    
+    
+    // ...
+
+    private var subscriptions = [AnyCancellable]()
+
+    // 引数の action が発行されるまで待つ
+    func take(_ actionType: SagaAction.Type ) -> Future <SagaAction, Never> {
+        return Future { [weak self] promise in
+            guard let self = self else { 
+                return
+            }
+            self.subject.filter {
+                type(of: $0) == actionType
+            }.sink { _ in
+                // 必要に応じてエラー処理を行う
+            } receiveValue: {
+                promise(.success($0))
+            }.store(in: &self.subscriptions)
+        }
+    }
+}
+```
+
+追加改修した Channel を利用して take の関数を作成します。
+この `take()` を実行するたびに、Channel で監視が始まり、
+引数で指定した Action の型が検出されるまで、待つことになります。
 
 ```swift
 @discardableResult
 func take(_ actionType: SagaAction.Type) async -> SagaAction {
-    return await withCheckedContinuation { continuation in
-        Channel.shared.take(actionType) { action in
-            continuation.resume(returning: action)
-        }
-    }
+    let action = await Channel.shared.take(actionType).value
+    return action
 }
 ```
 
@@ -249,6 +260,7 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 
 次に takeEvery を作成します。
 これは特定の Action と Saga を紐づけて、その Action が発行されるたびに指定した Saga を実行します。
+前述で作成した `take()` と `call()` を組み合わせて実装します。
 
 ```swift
 func takeEvery( _ actionType: SagaAction.Type,
@@ -263,28 +275,26 @@ func takeEvery( _ actionType: SagaAction.Type,
 ```
 
 何このコード！？という感覚は正常です。
-無限ループ中に take() で Action が発行されるまで待ち、
+無限ループ中にで Action が発行されるまで待ち、
 発行されたら Saga を実行する処理を繰り返します。
 
-## Redux Saga を使おう
+## 自作した Redux Saga を使おう
 
 一連の実装が完了したので、実際に使ってみましょう。
-まずは、実行させたい処理の Saga を実装します。
-オリジナルの実装では Saga 関数がジェネレーター関数で他の関数と異なることもあって慣習的に xxxSaga と命名することが多いです。
-今回 Swift での Saga 関数は通常の関数なので区別は必要ないですが、慣習にそった命名をしました。
+まずは、実行させたい処理の Saga 関数を実装します。
+オリジナルの実装では Saga 関数がジェネレーター関数で他の関数と異なることもあって、慣習的に xxxSaga と命名することが多いです。
+Swift での Saga 関数は通常の関数なので区別する必要ないですが、慣習にそって、命名しました。
 
 ```swift
 // ユーザー情報を取得する Saga
 let requestUserSaga: Saga = { action async in
-    guard let action = action as? RequestUser else {
-        // 引数の型をキャストして、想定してない型の場合は終了する
-        return
-    }
-    // API などでユーザー情報を取得する
+    // 必要に応じて引数の action を対象の Action にキャストする
+    guard let action = action as? RequestUser else { return }
+    // API などで action.userID のユーザー情報を取得する
 }
 ```
 
-次に takeEvery 関数で Action と Saga を紐付けます。
+次に takeEvery で Action と Saga を紐付けます。
 
 ```swift
 // Saga を設定する関数
@@ -307,28 +317,34 @@ func makeAppStore() -> Store<AppState> {
 ```
 
 これで準備が整いました。
-適当な View の関数で Action `RequestUser` を発行する処理を書きましょう。
+適当な View の関数で Action `RequestUser` を発行する処理を書きます。
 今回は MVVM を想定して、適当な ViewModel を用意しました。
 
 ```swift
 final class UserViewModel {
     // 適当なボタンイベントなどで呼ぶ  
-    public func requestUser() {
+    func requestUser() {
         store.dispatch(RequestUser(userID: "1234"))
     }
 }
 ```
 
-この関数が実行されると、Action `RequestUser` が発行されて、
-対応する Saga `requestUserSaga` が実行されます。
+この関数が実行されると、Redux で Action `RequestUser` が発行されます。
+そして、Redux Saga へ伝達され、対応する Saga `requestUserSaga` が実行されます。
 View は Action を発行するだけで、
-処理の実装（記述）もすることはなく、実行される処理の責務には関与しません。
-紙面の都合上、コードは省略しますが、上記の Saga にさらに State を更新する処理を追加すれば、
-その更新された State にしたがって、対応する View が更新されます。
+実装（コーディング）も不要で、実行される処理の責務には関与しません。
 
 ## 自作した Redux Saga の評価
 
 あああ。
+
+
+改善したこと
+
+- Action を enum, struct でもできるようにしたい
+- Saga のジェネリクスを適切に対応する
+- エラー処理（do-catch, throw）を適切に対応する
+- テストコードを整備する
 
 ## まとめ
 
