@@ -256,6 +256,9 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 }
 ```
 
+この `take()` は Redux Saga の起点となる関数です。
+Action の種類、つまり Swift では型で判断するというところに苦労しました。
+
 ### takeEvery を実装する
 
 次に takeEvery を作成します。
@@ -280,16 +283,13 @@ func takeEvery( _ actionType: SagaAction.Type,
 
 ## 自作した Redux Saga を使おう
 
-一連の実装が完了したので、実際に使ってみましょう。
-まずは、実行させたい処理の Saga 関数を実装します。
-オリジナルの実装では Saga 関数がジェネレーター関数で他の関数と異なることもあって、慣習的に xxxSaga と命名することが多いです。
-Swift での Saga 関数は通常の関数なので区別する必要ないですが、慣習にそって、命名しました。
+まずは、実行させたい処理を Saga 関数で実装します。
+オリジナルの実装では Saga 関数を慣習的に xxxSaga と命名することが多いです。
+Swift でも、慣習にそって、命名しました。
 
 ```swift
 // ユーザー情報を取得する Saga
 let requestUserSaga: Saga = { action async in
-    // 必要に応じて引数の action を対象の Action にキャストする
-    guard let action = action as? RequestUser else { return }
     // API などで action.userID のユーザー情報を取得する
 }
 ```
@@ -331,20 +331,32 @@ final class UserViewModel {
 
 この関数が実行されると、Redux で Action `RequestUser` が発行されます。
 そして、Redux Saga へ伝達され、対応する Saga `requestUserSaga` が実行されます。
-View は Action を発行するだけで、
-実装（コーディング）も不要で、実行される処理の責務には関与しません。
+View は Action を発行するだけで、実行される処理の責務には関与しません。
 
 ## 自作した Redux Saga の評価
 
-あああ。
-
-
-改善したこと
+Redux Saga の主な機能を再現して、アプリの副作用を Saga にまとめることができました。
+ViewModel がシンプルになったので、作成してよかったです。
+しかし、まだ修正したいところもあります。まだまだ開発途中で、改善中です。
 
 - Action を enum, struct でもできるようにしたい
 - Saga のジェネリクスを適切に対応する
-- エラー処理（do-catch, throw）を適切に対応する
-- テストコードを整備する
+- エラー処理（do-catch, throw）やテストコードを適切に対応する
+
+## Redux Saga と SwiftUI
+
+Redux Saga を利用すると、Redux の利点に加えて、次のメリットが考えられます。
+
+- Saga というシンプルな関数で副作用を管理できる
+  - シンプルな関数なので、テストが比較的簡単になる
+- View と副作用が分離される
+  - 各コンポーネントが単純になり、保守性と再利用性が向上する
+
+ただし、SwiftUI の性質から、React Native で利用した場合と同様な快適さは得られないとも思っています。
+たとえばナビゲーション遷移も Saga で制御することがありますが、
+SwiftUI のナビゲーションは癖があるので、再現は難しいです。
+ただ、上記で挙げたメリットもあるので、自作ライブラリの練度を上げて、
+より iOS アプリ開発に最適な形を追求したいです。
 
 ## まとめ
 
@@ -354,18 +366,15 @@ JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga 
 完全再現は諦めて、その概念を取り入れ、Swift の特性を活かす形での実装を試みて、
 やっと形になりました。
 
-今回は middleware と call, take, takeEvery の実装を紹介しました。
+今回は middleware, call, take そして takeEvery の実装を紹介しました。
 紙面の都合上で取り上げなかったのですが、
-他にも put, fork, selector そして takeLeading や takeLatest なども実装しています。
+他にも put, fork, selector, takeLeading や takeLatest なども実装しています。
 それらの実装を含め、今回のコードは GitHub で公開しています。
-そのコードを通じて、Redux Saga の Swift における実装方法を見ることができます。
 
 <!-- textlint-disable -->
 https://github.com/mitsuharu/ReSwiftSagaSample
 <!-- textlint-enable -->
 
-Redux をベースとした iOS 向けのライブラリ、
+Redux をベースとした開発ライブラリ、
 たとえば ReSwift や The Composable Architecture（TCA）などは、すでに多くのアプリで利用されています。
 今回の紹介した Redux Saga も他の iOS アプリ開発者に興味を持ってもらえれば、幸いです。
-
-このプロジェクトはいずれ OSS として公開予定です。
