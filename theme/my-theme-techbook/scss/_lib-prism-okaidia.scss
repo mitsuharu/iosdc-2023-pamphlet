@@ -39,6 +39,7 @@ pre[class*='language-'] {
 
 :not(pre) > code[class*='language-'],
 pre[class*='language-'] {
+  // コードブロックの背景色
   background: #272822;
 }
 
@@ -97,7 +98,7 @@ pre[class*='language-'] {
 
 .token.atrule,
 .token.attr-value,
-.token.function,
+.token.function, // コードブロックの背景色
 .token.class-name {
   color: #e6db74;
 }
