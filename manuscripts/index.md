@@ -28,7 +28,7 @@ Redux Saga の特性や利点を紹介して、iOS アプリ開発における R
 <!-- textlint-enable -->
 
 本記事では、Swift だけでなく JavaScript（TypeScript）のコードも提示します。
-また、Redux Saga の API も挙げますが、詳細説明は省略します。
+また、Redux Saga の API も挙げますが、詳細な説明は省略します。
 雰囲気を感じてもらう程度で問題ありません。
 
 ## Redux Saga とは
@@ -43,7 +43,7 @@ Redux は、JavaScript アプリの状態管理のための予測可能な状態
 Redux Saga は、非同期処理や副作用を効率的に管理するライブラリです。
 Saga はアプリの中で副作用を個別に実行する独立したスレッドのような動作イメージです。
 Redux Saga はミドルウェアとして実装されているため、Saga は Action に応じて起動、一時停止、中断ができます。
-State 全体にアクセスでき、Action をディスパッチできます。
+State 全体にアクセスでき、Action を発行できます。
 
 同様なライブラリの Redux Thunk と比較すると、
 コールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、Action を純粋に保つことができます。
@@ -65,8 +65,8 @@ const onPress = () => {
 ```
 
 事前に Redux Saga 側で Action と Saga を紐付けしておきます。
-takeEvery() は特定の Action が発行されるのを待ち、発行されたら Saga を実行する関数です。
-その Action が発行されたので、紐付けられた Saga が実行されます。
+takeEvery は特定の Action が発行されるのを待ち、発行されたら Saga を実行します。
+onPress() で Action が発行されたので、紐付けられた Saga が実行されます。
 
 ```typescript
 // Redux Saga の初期設定時に Action に対応する処理を設定しておく
@@ -92,7 +92,7 @@ Redux Saga の実装・機能は複雑なため、完全再現は目指さず、
 middleware は Redux から Redux Saga へ Action を伝える根底部分で、
 call, take, takeEvery はよく利用される機能です。
 
-本来の JavaScript の実装ではジェネレーター関数が利用されていますが、
+元々の JavaScript の実装ではジェネレーター関数が利用されていますが、
 Swift では Swift Concurrency を利用します。
 また Action の非同期な発行や監視は Combine で制御します。
 なお、Redux 本体の実装に既存ライブラリの ReSwift [^ReSwift] を利用します。
@@ -111,7 +111,7 @@ Swift では Swift Concurrency を利用します。
 ## Swift で実装する
 
 まず Redux Saga の実装において Action の比較が必要になります。
-ここでの比較はインスタンス同士の比較ではなく、Action の種類、つまり型レベルでの比較です。
+ここでいう比較はインスタンス同士の比較ではなく、Action の種類、つまり型レベルでの比較です。
 ReSwift が定義する Action は空の Protocol で、
 一般に enum や struct で利用されることが多いです。
 enum では型レベルの比較が難しい、実装の過程で継承を利用したいので struct は難しいです
@@ -140,7 +140,8 @@ final class RequestUser: UserAction {
 ### middleware を実装する
 
 Redux で発行された Action を Redux Saga に伝達させる middleware を実装します。
-まず Action を Redux Saga 向けに発行するクラス Channel を作成します。
+まず Action を Redux Saga 向けに発行するクラスを作成します。
+クラス名を Channel としました。これが自作する Redux Saga を制御する中核になります。
 
 ```swift
 final class Channel {    
@@ -157,13 +158,12 @@ final class Channel {
 この Channel を組み込んだ middleware を実装します。
 
 ```swift
-// Saga 向けの middleware を作成する
 func createSagaMiddleware<State>() -> Middleware<State> {
     return { dispatch, getState in
         return { next in
             return { action in
                 if let action = action as? SagaAction {
-                    Channel.shared.send(action)
+                    Channel.shared.put(action)
                 }
                 return next(action)
             }
@@ -192,16 +192,15 @@ func makeAppStore() -> Store<AppState> {
 
 ### call を実装する
 
-Saga は多様するので、型定義をします。
-Action を引数にした非同期関数です。
+call は Saga の関数と引数を与えて実行するシンプルな関数です。
+ここで Saga 関数の型を定義します。Action を引数にした非同期関数です。
 
 ```swift
-// Sagaで実行する関数の型
 typealias Saga<T> = (SagaAction) async -> T
 ```
 
-call は Saga とその引数を与えて実行するシンプルな関数です。
-Saga の型定義でジェネリクスを利用しましたが、ここでは開発中のため Any にしました。
+この型を使って call を次のように実装しました。
+Saga の型定義でジェネリクスを利用しましたが、開発中のため Any にしました。
 今後の修正課題です。
 
 ```swift
@@ -214,9 +213,9 @@ func call(_ effect: @escaping Saga<Any>,
 
 ### take を実装する
 
-take は特定の Action が発行されるのを待つ処理です。
-Action のインスタンスを比較するのではなく、
-発行された Action の種類（型）を見て判定します。
+take は特定の Action が発行されるのを待ちます。
+注意点として Action のインスタンスを比較するのではなく、
+発行された Action の種類（型）で判定します。
 まずは前述の Channel に、特定の Action を受信する仕組みを追加します。
 
 ```swift
@@ -257,7 +256,7 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 ```
 
 この take() は Redux Saga の起点となる関数の１つです。
-Action の種類、つまり Swift では型で判断するというところに苦労しました。
+Action の種類、つまり Swift では型で判断するという購読処理を納得するまで何度も作り直すのに苦労しました。
 
 ### takeEvery を実装する
 
@@ -276,12 +275,14 @@ func takeEvery( _ actionType: SagaAction.Type,
 }
 ```
 
-何このコード！？という感覚は正常です。
-無限ループ中にで Action が発行されるまで待ち、
-発行されたら Saga を実行する処理を繰り返します。
+無限ループ！？という感覚は正常です。
+ループ中で Action が発行されるまで待ち、
+発行されたら Saga を実行するという処理を繰り返します。
 
 ## 自作した Redux Saga を使おう
 
+一連の実装が終わりました。
+takeEvery を使った簡単な例を紹介します。
 まずは、実行させたい処理を Saga 関数で実装します。
 オリジナルの実装では Saga 関数を慣習的に xxxSaga と命名することが多いです。
 Swift でも、慣習にそって、命名しました。
@@ -317,7 +318,7 @@ func makeAppStore() -> Store<AppState> {
 ```
 
 準備が整いました。
-適当な View の関数で Action `RequestUser` を発行する処理を書きます。
+適当な View 向けの関数で Action `RequestUser` を発行する処理を書きます。
 今回は MVVM を想定して、適当な ViewModel を用意しました。
 
 ```swift
@@ -333,32 +334,41 @@ final class UserViewModel {
 そして、Redux Saga へ伝達され、対応する Saga `requestUserSaga` が実行されます。
 View は Action を発行するだけで、実行される処理およびその実装の責務には関与しません。
 
-## 自作した Redux Saga の評価
+## 評価と考察
 
 Redux Saga の主な機能を再現して、アプリの副作用を Saga にまとめることができました。
-ViewModel がシンプルになったので、作成してよかったです。
-しかし、まだ修正したいところもあります。まだまだ開発途中で、改善中です。
+View での処理がとてもシンプルになり満足しています。
+しかし、まだ対応・修正したいところも残っています。まだまだ開発途中です。
 
-- Action を enum, struct でもできるようにしたい
+- 残りの未実装な機能を実装する
+- Action を enum, struct でも利用できるようにしたい
 - Saga のジェネリクスを適切に対応する
-- エラー処理（do-catch, throw）を適切に対応する
-- テストコードを適切に対応する
+- エラー処理やテストコードなどを適切に整備して、安全にする
 
-## Redux Saga と SwiftUI
+### Redux Saga と SwiftUI
 
-Redux Saga を利用すると、Redux の利点に加えて、次のメリットが考えられます。
+SwiftUI を利用した開発では Redux ベースのアーキテクチャとの相性がよいといわれています。
+しかしながら、SwiftUI の実装や癖などから Apple Platform においては、
+私は必ずしもベストマッチだとは言い切れないとも考えています。
+少なくとも、私は同じ宣言的 UI の React Native と同程度の開発体験は得られていないです。
 
-- Saga というシンプルな関数で副作用を管理できる
-  - シンプルな関数なので、テストが比較的簡単になる
-- View と副作用が分離される
-  - 各コンポーネントが単純になり、保守性と再利用性が向上する
+私が個人開発する場合、Redux（ReSwift）+ MVVM でアプリ設計をすることが多いです。
+Apple Platform では MVVM の選択が無難だが、Redux の利点も捨てきれないためです。
+状態は Redux で管理して、副作用などは ViewModel で定義しています。
+今回自作した Redux Saga により、副作用も Redux 側で管理できるようになりました。
+ViewModel は Action の発火と状態を View へ渡すだけのよりシンプルな構造になり、
+MVVM でしばしば問題にされる Fat ViewModel は解消されました。
 
-ただし、SwiftUI の性質から、たとえば React Native で利用した場合と比較して、
-同等な快適さは得られないとも思っています。
-たとえばナビゲーション遷移も Redux Saga で制御することがありますが、
-SwiftUI のナビゲーションは癖があるので、再現は難しいです。
-しかし、上記で挙げたメリットもあるので、自作ライブラリの練度を上げて、
-より iOS アプリ開発に最適な形を追求したいです。
+しかし、このアーキテクチャもニッチだと自認しています。
+Redux Saga の学習コストは比較的高いとされていますし、全員には勧めません。
+Redux ベースのアーキテクチャに興味あるが、
+サードパーティのアーキテクチャのライブラリを導入してプロジェクトの構造を大きく変えたくない奇特な方、いかがでしょうか？
+
+<!--
+React Native では、View をビジネスロジックや副作用を責務とする Container と
+表示を責務とする Presentational に分けて実装する手法があります。
+-->
+
 
 ## まとめ
 
@@ -377,6 +387,7 @@ JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga 
 https://github.com/mitsuharu/ReSwiftSagaSample
 <!-- textlint-enable -->
 
+まだ開発・検証のためのサンプルコードですが、いずれ OSS のようなちゃんとした形にしたいと思っています。
 Redux をベースとした開発ライブラリ、
-たとえば ReSwift や The Composable Architecture（TCA）などは、すでに多くのアプリで利用されています。
+たとえば ReSwift や TCA などは、すでに多くのアプリで利用されています。
 今回の紹介した Redux Saga も他の iOS アプリ開発者に興味を持ってもらえれば、幸いです。
