@@ -6,14 +6,16 @@
 
 code[class*='language-'],
 pre[class*='language-'] {
-  color: #f8f8f2;
+  color: $color_code_block_base_text;
   background: none;
   text-shadow: 0 1px rgba(0, 0, 0, 0.3);
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 1em;
   text-align: left;
+
   // white-space: pre;
   white-space: pre-wrap; // コードブロックを折返しする
+  
   word-spacing: normal;
   word-break: normal;
   word-wrap: normal;
@@ -35,12 +37,19 @@ pre[class*='language-'] {
   margin: 0.5em 0;
   overflow: auto;
   border-radius: 0.3em;
+
+  // ボーダーの境界線を追加
+  border-top: 0.5px solid;
+  border-bottom: 0.5px solid;
+  border-right: 0.5px solid;
+  border-left: 0.5px solid;
+  border-color: $color_code_block_border_color;
 }
 
 :not(pre) > code[class*='language-'],
 pre[class*='language-'] {
   // コードブロックの背景色
-  background: #272822;
+  background: $color_code_block_background;
 }
 
 /* Inline code */
@@ -54,11 +63,11 @@ pre[class*='language-'] {
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: slategray;
+  color: $color_code_block_comment;
 }
 
 .token.punctuation {
-  color: #f8f8f2;
+  color: $color_code_block_base_text;
 }
 
 .namespace {
@@ -70,12 +79,12 @@ pre[class*='language-'] {
 .token.constant,
 .token.symbol,
 .token.deleted {
-  color: #f92672;
+  color: $color_code_block_constant;
 }
 
 .token.boolean,
 .token.number {
-  color: #ae81ff;
+  color: $color_code_block_boolean_number;
 }
 
 .token.selector,
@@ -84,7 +93,7 @@ pre[class*='language-'] {
 .token.char,
 .token.builtin,
 .token.inserted {
-  color: #a6e22e;
+  color: $color_code_block_letter;
 }
 
 .token.operator,
@@ -93,23 +102,29 @@ pre[class*='language-'] {
 .language-css .token.string,
 .style .token.string,
 .token.variable {
-  color: #f8f8f2;
+  color: $color_code_block_base_text;
 }
 
 .token.atrule,
-.token.attr-value,
-.token.function, // コードブロックの背景色
+.token.attr-value{
+  color: $color_code_block_attribute_name;
+}
+
+.token.function{
+  color: $color_code_block_func_name;
+}
+
 .token.class-name {
-  color: #e6db74;
+  color: $color_code_block_class_name;
 }
 
 .token.keyword {
-  color: #66d9ef;
+  color: $color_code_block_reserved_word;
 }
 
 .token.regex,
 .token.important {
-  color: #fd971f;
+  color: $color_code_block_regex_important;
 }
 
 .token.important,
