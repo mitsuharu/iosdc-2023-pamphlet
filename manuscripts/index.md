@@ -55,7 +55,7 @@ State 全体にアクセスでき、Action を発行できます。
 </div> -->
 
 たとえば、あるボタンをタップして、ユーザー情報を取得する例を考えましょう。
-この場合、タップイベントでユーザー情報を取得したいという Action を発行します。
+この場合、タップイベントでユーザー情報を取得するという Action を発行します。
 
 ```typescript
 // View などでユーザー情報を取得する Action を発行（dispatch）する
@@ -87,8 +87,8 @@ Redux Saga にしたがっていれば、自ずと責務分けが実現されま
 
 ## Swift での実装アプローチ
 
-Redux Saga の実装・機能は複雑なため、完全再現は目指さず、一部の機能実装から始めます。
-本記事では、middleware, call, take そして takeEvery の実装を紹介します。
+Redux Saga の実装や機能は複雑なため、完全再現は目指さず、一部の機能実装から始めます。
+今回は、middleware, call, take そして takeEvery を実装します。
 middleware は Redux から Redux Saga へ Action を伝える根底部分で、
 call, take, takeEvery はよく利用される機能です。
 
@@ -97,12 +97,13 @@ Swift では Swift Concurrency を利用します。
 また Action の非同期な発行や監視は Combine で制御します。
 なお、Redux 本体の実装に既存ライブラリの ReSwift [^ReSwift] を利用します。
 
-ここで、方針として Redux 本体への接点は極力少なく、独立したライブラリになるように心がけます。
-これは Saga としてビジネスロジックを切り離して管理できるので、
-たとえば将来的に優れた他のアーキテクチャが登場した場合などにおいて、
-アーキテクチャの入替を容易にするためです。
+ここで、Redux 本体との接点を最小限に抑え、独立性の高いライブラリを目指します。
+Saga としてビジネスロジックを切り離して管理できるので、
+たとえば新たに優れたアーキテクチャが登場した場合でも、
+そのアーキテクチャへの入替を容易にするためです。
 
 今回は Xcode 14.3.1 で開発しています。
+現在も開発中なため、紹介するソースコードは変更される場合があります。ご了承ください。
 
 <!-- textlint-disable -->
 [^ReSwift]: https://github.com/ReSwift/ReSwift バージョン 6.1.1 を利用しました
@@ -115,7 +116,7 @@ Swift では Swift Concurrency を利用します。
 ReSwift が定義する Action は空の Protocol で、
 一般に enum や struct で利用されることが多いです。
 enum では型レベルの比較が難しい、実装の過程で継承を利用したいので struct は難しいです
-（継承を利用するのは主に reducer の設計ですが、その詳細は省略します）。
+（継承を利用する主な目的は reducer の設計なので、詳細は省略します）。
 そのため、今回は class で Action を実装します。
 
 ```swift
@@ -141,7 +142,7 @@ final class RequestUser: UserAction {
 
 Redux で発行された Action を Redux Saga に伝達させる middleware を実装します。
 まず Action を Redux Saga 向けに発行するクラスを作成します。
-クラス名を Channel としました。これが自作する Redux Saga を制御する中核になります。
+クラス名は Channel にしました。このクラスが自作する Redux Saga の中核になります。
 
 ```swift
 final class Channel {    
@@ -172,8 +173,8 @@ func createSagaMiddleware<State>() -> Middleware<State> {
 }
 ```
 
-この middleware を ReSwift の Store に適用すれば、
-Redux のフローに介入して、発行された Action が Redux Saga に伝達されます。
+この middleware を ReSwift の Store に適用します。
+Redux のデータフローに介入して、発行された Action を Redux Saga に伝達させます。
 
 ```swift
 // ReSwift の初期設定を行う関数
@@ -220,12 +221,12 @@ take は特定の Action が発行されるのを待ちます。
 
 ```swift
 final class Channel {    
-    
     // ...
 
+    // deinit などで忘れずに解放する（省略）
     private var subscriptions = [AnyCancellable]()
 
-    // 引数の action が発行されるまで待つ
+    // 引数で指定した action の型が発行されるまで待つ
     func take(_ actionType: SagaAction.Type ) -> Future <SagaAction, Never> {
         return Future { [weak self] promise in
             guard let self = self else { 
@@ -244,8 +245,8 @@ final class Channel {
 ```
 
 追加改修した Channel を利用して take の関数を作成します。
-この take() を実行するたびに、Channel で監視が始まり、
-引数で指定した Action の型が検出されるまで、待つことになります。
+この take() を実行すると、
+引数で指定した Action の型の監視が始まり、検出されるまで待ちます。
 
 ```swift
 @discardableResult
@@ -255,8 +256,9 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 }
 ```
 
-この take() は Redux Saga の起点となる関数の１つです。
-Action の種類、つまり Swift では型で判断するという購読処理を納得するまで何度も作り直すのに苦労しました。
+この take() は Redux Saga の起点となる機能の１つです。
+Action の種類、つまり Swift では型で判断するという購読処理は、納得するまで何度も作り直しました。
+苦労したところです。
 
 ### takeEvery を実装する
 
@@ -285,7 +287,7 @@ func takeEvery( _ actionType: SagaAction.Type,
 takeEvery を使った簡単な例を紹介します。
 まずは、実行させたい処理を Saga 関数で実装します。
 オリジナルの実装では Saga 関数を慣習的に xxxSaga と命名することが多いです。
-Swift でも、慣習にそって、命名しました。
+Swift でも、その慣習にそって、命名しました。
 
 ```swift
 // ユーザー情報を取得する Saga
@@ -354,13 +356,14 @@ SwiftUI を利用した開発では Redux ベースのアーキテクチャと�
 
 私が iOS アプリを個人開発する場合、Redux（ReSwift）+ MVVM でアプリ設計をすることが多いです。
 Apple Platform では MVVM の選択が無難だが、Redux の利点も捨てきれないためです。
-状態は Redux で管理して、副作用などは ViewModel で定義しています。
+状態は Redux で管理して、副作用などは ViewModel で定義しました。
 今回自作した Redux Saga により、副作用も Redux 側で管理できるようになりました。
 ViewModel は Action の発火と状態を View へ渡すだけのよりシンプルな構造になり、
 MVVM でしばしば問題にされる Fat ViewModel は解消されました。
 
 しかし、このアーキテクチャもニッチだと自認しています。
-Redux Saga の学習コストは比較的高いとされていますし、全員には勧めません。
+全員には勧めません。
+Redux Saga の学習コストは比較的高いとされていますが、
 Redux ベースのアーキテクチャに興味ある方、
 プロジェクトの構造を大きく変えずにまずは試したい方、いかがでしょうか。
 
@@ -373,20 +376,19 @@ React Native では、View をビジネスロジックや副作用を責務と�
 
 本記事は、JavaScript ベースのライブラリ Redux Saga を Swift で実装する方法について解説しました。
 JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga の完全な再現は難しいです。
-実際にいろいろ試作して上手くいかないことも多く、ChatGPT にも相談しました。
+実際に多くの試作して上手くいかないこともあり、ChatGPT にも相談しました。
 完全再現は諦めて、その概念を取り入れ、Swift の特性を活かす形での実装を試みて、
 やっと形になりました。
 
 今回は middleware, call, take そして takeEvery の実装を紹介しました。
-紙面の都合上で取り上げなかったのですが、
-他にも put, fork, selector, takeLeading や takeLatest なども実装しています。
+紙面の都合上で取り上げなかった他の機能 put, fork, selector, takeLeading や takeLatest なども実装しています。
 それらの実装を含め、今回のコードは GitHub で公開しています。
 
 <!-- textlint-disable -->
 https://github.com/mitsuharu/ReSwiftSagaSample
 <!-- textlint-enable -->
 
-まだ開発・検証のためのサンプルコードですが、いずれ OSS のようなちゃんとした形にしたいと思っています。
+現段階は開発・検証のためのサンプルコードですが、将来的には OSS としてリリースしたいと考えています。
 Redux をベースとした開発ライブラリ、
 たとえば ReSwift や TCA などは、すでに多くのアプリで利用されています。
-今回の紹介した Redux Saga も他の iOS アプリ開発者に興味を持ってもらえれば、幸いです。
+今回の紹介した Redux Saga も他の iOS アプリ開発者に興味を持って頂けたら嬉しいです。
