@@ -17,7 +17,7 @@ Redux Saga は JavaScript で作成され Web（React）や React Native など�
 同じ宣言的 UI の SwiftUI との相性が期待できます。
 しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
 
-それならば、自身で実装するしかありません。
+それならば、自身で作成するしかありません。
 JavaScript と Swift の言語設計と性質の違いを考慮しつつ、Swift の言語特性を活かす形で、
 Redux Saga の主要な機能をどのように実装するかを解説します。
 Redux Saga の特性や利点を紹介して、iOS アプリ開発における Redux Saga の可能性を探求します。
