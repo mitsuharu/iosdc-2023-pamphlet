@@ -17,7 +17,7 @@ Redux Saga は JavaScript で作成され Web（React）や React Native など�
 同じ宣言的 UI の SwiftUI との相性が期待できます。
 しかし、残念なことに Swift で Redux Saga を実装したライブラリはありません。
 
-それならば、自身で作成するしかありません。
+それならば、自身で実装するしかありません。
 JavaScript と Swift の言語設計と性質の違いを考慮しつつ、Swift の言語特性を活かす形で、
 Redux Saga の主要な機能をどのように実装するかを解説します。
 Redux Saga の特性や利点を紹介して、iOS アプリ開発における Redux Saga の可能性を探求します。
@@ -34,16 +34,16 @@ Redux Saga の特性や利点を紹介して、iOS アプリ開発における R
 ## Redux Saga とは
 
 Redux は、JavaScript アプリの状態管理のための予測可能な状態コンテナです。
-これにより、アプリ全体の状態を一元的に管理ができて、データフローを単純化して管理を容易にします。
+アプリ全体の状態を一元的に管理ができて、データフローを単純化して管理を容易にします。
 しかし、Redux は非同期処理や副作用（データフェッチングやデータベースへのアクセスなど）の管理が設計されていないため、
-それらの処理の実装方法は明確に定められていません。
+それらの実装方法は明確に定められていません。
 これは Redux の主な弱点の１つとされています。
 
 そこで Redux Saga の登場です。
 Redux Saga は、非同期処理や副作用を効率的に管理するライブラリです。
 Saga はアプリの中で副作用を個別に実行する独立したスレッドのような動作イメージです。
-Redux Saga はミドルウェアとして実装されているため、Saga は Action に応じて起動、一時停止、中断ができます。
-State 全体にアクセスでき、Action を発行できます。
+Redux Saga は middleware として実装されているため、Saga は Action に応じて起動、一時停止、中断ができます。
+State 全体にアクセスでき、Action の発行もできます。
 
 同様なライブラリの Redux Thunk と比較すると、
 コールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、Action を純粋に保つことができます。
@@ -55,7 +55,7 @@ State 全体にアクセスでき、Action を発行できます。
 </div> -->
 
 たとえば、あるボタンをタップして、ユーザー情報を取得する例を考えましょう。
-この場合、タップイベントでユーザー情報を取得するという Action を発行します。
+この場合、タップイベントで「ユーザー情報を取得する」という Action を発行します。
 
 ```typescript
 // View などでユーザー情報を取得する Action を発行（dispatch）する
@@ -95,7 +95,7 @@ call, take, takeEvery はよく利用される機能です。
 元々の JavaScript の実装ではジェネレーター関数が利用されていますが、
 Swift では Swift Concurrency を利用します。
 また Action の非同期な発行や監視は Combine で制御します。
-なお、Redux 本体の実装に既存ライブラリの ReSwift [^ReSwift] を利用します。
+なお、Redux 本体の実装は既存ライブラリの ReSwift [^ReSwift] を利用します。
 
 ここで、Redux 本体との接点を最小限に抑え、独立性の高いライブラリを目指します。
 Saga としてビジネスロジックを切り離して管理できるので、
@@ -115,9 +115,9 @@ Saga としてビジネスロジックを切り離して管理できるので、
 ここでいう比較はインスタンス同士の比較ではなく、Action の種類、つまり型レベルでの比較です。
 ReSwift が定義する Action は空の Protocol で、
 一般に enum や struct で利用されることが多いです。
-enum では型レベルの比較が難しい、実装の過程で継承を利用したいので struct は難しいです
-（継承を利用する主な目的は reducer の設計なので、詳細は省略します）。
-そのため、今回は class で Action を実装します。
+enum は型レベルの比較が難しい、struct は実装の過程で継承を利用したいので難しいです
+（継承を利用する主な目的は reducer の設計で、その詳細は省略します）。
+そのため、今回は class で Action を定義します。
 
 ```swift
 class SagaAction: Action {}
@@ -141,7 +141,7 @@ final class RequestUser: UserAction {
 ### middleware を実装する
 
 Redux で発行された Action を Redux Saga に伝達させる middleware を実装します。
-まず Action を Redux Saga 向けに発行するクラスを作成します。
+まず Action を Redux Saga 向けに発行するクラスを実装します。
 クラス名は Channel にしました。このクラスが自作する Redux Saga の中核になります。
 
 ```swift
@@ -244,7 +244,7 @@ final class Channel {
 }
 ```
 
-追加改修した Channel を利用して take の関数を作成します。
+追加改修した Channel を利用して take の関数を実装します。
 この take() を実行すると、
 引数で指定した Action の型の監視が始まり、検出されるまで待ちます。
 
@@ -320,7 +320,7 @@ func makeAppStore() -> Store<AppState> {
 ```
 
 準備が整いました。
-適当な View 向けの関数で Action `RequestUser` を発行する処理を書きます。
+適当な View 向けの関数で Action `RequestUser` を発行する処理を作成します。
 今回は MVVM を想定して、適当な ViewModel を用意しました。
 
 ```swift
@@ -352,16 +352,19 @@ View での処理がとてもシンプルになり満足しています。
 SwiftUI を利用した開発では Redux ベースのアーキテクチャとの相性がよいといわれています。
 しかしながら、SwiftUI の実装や癖などから Apple Platform においては、
 私は必ずしもベストマッチだとは言い切れないとも考えています。
-少なくとも、私は同じ宣言的 UI の React Native + Redux Saga と同程度の開発体験は得られていないです。
+
+<!--
+少なくとも、私は同じ宣言的 UI の React Native + Redux Saga と同程度の開発体験はまだ得られていないです。
+-->
 
 私が iOS アプリを個人開発する場合、Redux（ReSwift）+ MVVM でアプリ設計をすることが多いです。
 Apple Platform では MVVM の選択が無難だが、Redux の利点も捨てきれないためです。
-状態は Redux で管理して、副作用などは ViewModel で定義しました。
+状態は Redux で管理して、副作用などは ViewModel で定義しています。
 今回自作した Redux Saga により、副作用も Redux 側で管理できるようになりました。
-ViewModel は Action の発火と状態を View へ渡すだけのよりシンプルな構造になり、
+ViewModel は Action の発行と状態を View へ渡すだけのシンプルな構造になり、
 MVVM でしばしば問題にされる Fat ViewModel は解消されました。
 
-しかし、このアーキテクチャもニッチだと自認しています。
+しかし、このアーキテクチャはニッチだと自認しています。
 全員には勧めません。
 Redux Saga の学習コストは比較的高いとされていますが、
 Redux ベースのアーキテクチャに興味ある方、
@@ -382,13 +385,13 @@ JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga 
 
 今回は middleware, call, take そして takeEvery の実装を紹介しました。
 紙面の都合上で取り上げなかった他の機能 put, fork, selector, takeLeading や takeLatest なども実装しています。
-それらの実装を含め、今回のコードは GitHub で公開しています。
+それらの実装を含め、ソースコードは GitHub で公開しています。
 
-<!-- textlint-disable -->
+```url
 https://github.com/mitsuharu/ReSwiftSagaSample
-<!-- textlint-enable -->
+```
 
 現段階は開発・検証のためのサンプルコードですが、将来的には OSS としてリリースしたいと考えています。
-Redux をベースとした開発ライブラリ、
+Redux をベースとしたアーキテクチャのライブラリ、
 たとえば ReSwift や TCA などは、すでに多くのアプリで利用されています。
-今回の紹介した Redux Saga も他の iOS アプリ開発者に興味を持って頂けたら嬉しいです。
+今回の紹介した Redux Saga も iOS アプリ開発者に興味を持って頂けたら嬉しいです。
