@@ -1,6 +1,6 @@
 module.exports = {
-    title: 'mybook',
-    author: '江本光晴 <mthr1982@gmail.com>',
+    title: 'Redux の副作用を直感的に管理する Redux Saga を Swift でも使いたい',
+    author: '江本光晴',
     language: 'ja',
     size: 'A4',
     // theme: '@vivliostyle/theme-techbook',
@@ -13,10 +13,11 @@ module.exports = {
       './output/output.pdf',
     ],
     workspaceDir: '.vivliostyle',
-    toc: false
-    // cover: './cover.png',
-    // vfm: {
-    //   hardLineBreaks: true,
-    //   disableFormatHtml: true,
-    // },
+    toc: false,
+    cover: undefined,
+    vfm: {
+      hardLineBreaks: false,
+      disableFormatHtml: false,
+    },
   }
+  
