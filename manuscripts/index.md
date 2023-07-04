@@ -2,10 +2,8 @@ Redux の副作用を直感的に管理する Redux Saga を Swift でも使い�
 ==
 
 <div style="text-align: right;">
-江本光晴（Twitter: @mitsuharu_e）
-</div>
-<div style="text-align: right;">
-株式会社ゆめみ
+江本光晴（株式会社ゆめみ）<BR />
+@mitsuharu_e / @mitsuharu.bsky.social
 </div>
 
 あなたのお気に入りのアーキテクチャは何ですか。私のお気に入りは Redux Saga です。
