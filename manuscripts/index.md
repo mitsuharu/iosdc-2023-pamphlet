@@ -23,7 +23,7 @@ Redux Saga は JavaScript で作成され Web（React）や React Native など�
 
 Redux は、JavaScript アプリの状態管理のための予測可能な状態コンテナです。アプリ全体の状態を一元的に管理ができて、データフローを単純化して管理を容易にします。しかし、Redux は非同期処理や副作用（データフェッチングやデータベースへのアクセスなど）の管理が設計されていないため、それらの実装方法は明確に定められていません。これは Redux の主な弱点の１つとされています。
 
-そこで Redux Saga の登場です。Redux Saga は、非同期処理や副作用を効率的に管理するライブラリです。Saga はアプリの中で副作用を個別に実行する独立したスレッドのような動作イメージです。Redux Saga は middleware として実装されているため、Saga は Action に応じて起動、一時停止、中断ができます。State 全体にアクセスでき、Action の発行もできます。
+そこで Redux Saga の登場です。Redux Saga は、非同期処理や副作用を直感的に管理するライブラリです。Saga はアプリの中で副作用を個別に実行する独立したスレッドのような動作イメージです。Redux Saga は middleware として設計されているため、Saga は Action に応じて起動、一時停止、中断ができます。State 全体にアクセスでき、Action の発行もできます。
 
 同様なライブラリの Redux Thunk と比較すると、コールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、Action を純粋に保つことができます。
 
@@ -42,7 +42,7 @@ const onPress = () => {
 }
 ```
 
-事前に Redux Saga 側で Action と Saga を関連付けしておきます。takeEvery は特定の Action が発行されるのを待ち、それが発行されたら Saga を実行します。onPress() で `requestUser` が発行されたので、関連付けられた `requestUserSaga` が実行されます。
+事前に Redux Saga 側で Action と Saga を関連付けておきます。takeEvery は特定の Action が発行されるのを待ち、それが発行されたら Saga を実行します。onPress() で `requestUser` が発行されたので、関連付けられた `requestUserSaga` が実行されます。
 
 ```typescript
 // Redux Saga の初期設定時に Action に対応する処理を設定しておく
@@ -207,7 +207,7 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 
 ### takeEvery を実装する
 
-takeEvery は特定の Action と Saga を紐づけて、その Action が発行されるたびに指定した Saga を実行します。前述で作成した take と call を組み合わせて実装します。
+takeEvery は特定の Action と Saga を関連付けて、その Action が発行されるたびに指定した Saga を実行します。前述で作成した take と call を組み合わせて実装します。
 
 ```swift
 func takeEvery( _ actionType: SagaAction.Type,
@@ -276,7 +276,7 @@ Redux Saga の主な機能を再現して、アプリの副作用を Saga にま
 
 - 残りの未実装な機能を実装する
 - Action を enum, struct でも利用できるようにしたい
-- Saga のジェネリクスを適切に対応する
+- Saga のジェネリクスを適切に対応して、より型安全にする
 - エラー処理やテストコードなどを適切に整備して、安全にする
 
 ### Redux Saga と SwiftUI
@@ -289,7 +289,7 @@ SwiftUI を利用した開発では Redux ベースのアーキテクチャと�
 
 私が iOS アプリを個人開発する場合、Redux（ReSwift）+ MVVM でアプリ設計をすることが多いです。Apple Platform では MVVM の選択が無難だが、Redux の利点も捨てきれないためです。状態は Redux で管理して、副作用などは ViewModel で定義しています。今回自作した Redux Saga により、副作用も Redux 側で管理できるようになりました。ViewModel は Action の発行と状態を View へ渡すだけのシンプルな構造になり、MVVM でしばしば問題にされる Fat ViewModel は解消されました。
 
-しかし、このアーキテクチャはニッチだと自認しています。全員には勧めません。Redux Saga の学習コストは比較的高いとされていますが、Redux ベースのアーキテクチャに興味ある方、プロジェクトの構造を大きく変えずにまずは試したい方、いかがでしょうか。
+しかし、このアーキテクチャはニッチだと自認しています。全員には勧めません。Redux Saga の学習コストは比較的高いとされています。Redux ベースのアーキテクチャに興味ある方、プロジェクトの構造を大きく変えずにまずは試したい方、いかがでしょうか。
 
 <!--
 React Native では、View をビジネスロジックや副作用を責務とする Container と
@@ -306,4 +306,4 @@ React Native では、View をビジネスロジックや副作用を責務と�
 https://github.com/mitsuharu/ReSwiftSagaSample
 ```
 
-現段階は開発・検証のためのサンプルコードですが、将来的には OSS としてリリースしたいと考えています。Redux をベースとしたアーキテクチャのライブラリ、たとえば ReSwift や TCA などは、すでに多くのアプリで利用されています。今回の紹介した Redux Saga も iOS アプリ開発者に興味を持って頂けたら嬉しいです。
+現段階は開発・検証のためのサンプルコードですが、将来的には OSS としてリリースしたいと考えています。Redux をベースとしたアーキテクチャのライブラリ、たとえば ReSwift や TCA などは、すでに多くのアプリで利用されています。今回紹介した Redux Saga も iOS アプリ開発者に興味を持って頂けたら嬉しいです。
