@@ -203,7 +203,7 @@ func take(_ actionType: SagaAction.Type) async -> SagaAction {
 }
 ```
 
-この take() は Redux Saga の起点となる機能の１つです。Action の種類、つまり型で判断するという購読処理は、納得するまで何度も作り直しました。今回の実装で苦労したところです。
+この take() は Redux Saga の起点となる機能の１つです。Action の種類、つまり型で判断するという処理の設計や実装は、納得するまで何度も作り直しました。今回の実装で苦労した点です。
 
 ### takeEvery を実装する
 
