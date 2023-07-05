@@ -298,7 +298,7 @@ React Native では、View をビジネスロジックや副作用を責務と�
 
 ## まとめ
 
-本記事は、JavaScript ベースのライブラリ Redux Saga を Swift で実装する方法について解説しました。JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga の完全な再現は難しいです。実際に多くの試作して上手くいかないこともあり、ChatGPT にも相談しました。完全再現は諦めて、その概念を取り入れ、Swift の特性を活かす形での実装を試みて、やっと形になりました。
+本記事は、JavaScript ベースのライブラリ Redux Saga を Swift で実装する方法について解説しました。JavaScript と Swift は言語の設計と性質が異なるため、Redux Saga の完全な再現は難しいです。実際に多くの試作して上手くいかないこともあり、ChatGPT にも相談しました。完全再現は諦めて、その概念を取り入れ、Swift の特性を活かす形で実装を試みて、ようやく形になりました。
 
 今回は middleware, call, take そして takeEvery の実装を紹介しました。紙面の都合上から取り上げなかった他の機能 put, fork, selector, takeLeading や takeLatest なども実装しています。それらの実装を含め、ソースコードは GitHub で公開しています。
 
