@@ -27,10 +27,10 @@ Redux は、JavaScript アプリの状態管理のための予測可能な状態
 
 同様なライブラリの Redux Thunk と比較すると、コールバック地獄に陥ることなく、非同期フローを簡単にテスト可能にし、Action を純粋に保つことができます。
 
-![Redux Saga のデータフロー](./image/redux-saga.png "Redux Saga のデータフロー")
+![Redux Saga のデータフロー](./image/redux-saga.jpg "Redux Saga のデータフロー")
 
 <!-- <div style="text-align: center;">
-<img src="./image/redux-saga.png" alt="Redux Saga のデータフロー" title="Redux Saga のデータフロー" width="400">
+<img src="./image/redux-saga.jpg" alt="Redux Saga のデータフロー" title="Redux Saga のデータフロー" width="400">
 </div> -->
 
 たとえば、あるボタンをタップして、ユーザー情報を取得する例を考えましょう。この場合、タップイベントで「ユーザー情報を取得する」という Action を発行します。
